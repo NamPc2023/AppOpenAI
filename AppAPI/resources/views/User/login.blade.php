@@ -5,30 +5,23 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         
         <title>Login</title>
-        <link rel="stylesheet" href="{{asset('./style.css')}}">
+
+        @include('Admin.layout.header');
     </head>
     <body>
-        <div class="FormLogin">
-            <h4>Login</h4>
-            @if(count($errors) > 0)
-                @foreach ($errors->all() as $error)
-                    <p style="color:rgb(0, 255, 76)">{{ $error }}</p>
-                @endforeach
-            @endif
-            <form action="/user/post-login" method="POST">
-                <input type="hidden" name="_token" value="{{ csrf_token() }}" />
-                <div class="row">
-                    <label for="">Email</label>
-                    <input type="email" name="email">
-                </div>
-                <div class="row">
-                    <label for="">Password</label>
-                    <input type="password" name="password">
-                </div>
-                <div>
-                    <button type="submit">Login</button>
-                </div>
-            </form>
-        </div>
+        <h3 style="text-align: center">Login</h3>
+        <form action="/user/post-login" method="POST">
+            <input type="hidden" name="_token" value="{{ csrf_token() }}" />
+            <div class="mb-3">
+              <label for="exampleInputEmail1" class="form-label">Email address</label>
+              <input type="email" class="form-control" name="email">
+            </div>
+            <div class="mb-3">
+              <label for="exampleInputPassword1" class="form-label">Password</label>
+              <input type="password" class="form-control" name="password">
+            </div>
+            <button type="submit" class="btn btn-primary">Login</button>
+            <a style="margin-left: 40px" href="/user/register">Register</a>
+        </form>
     </body>
 </html>

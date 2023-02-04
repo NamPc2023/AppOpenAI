@@ -1,7 +1,10 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\LoginController;
+use App\Http\Controllers\AdminController;
+use App\Http\Controllers\WebController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -15,4 +18,33 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
+});
+
+
+Route::prefix('user')->group(function () {
+    //Login
+    Route::get('/login', [LoginController::class, 'loginIndex'])->name('Login');
+    Route::post('/post-login', [LoginController::class, 'postLogin']);
+    //Register
+    Route::get('/register', [LoginController::class, 'registerIndex']);
+    Route::post('/post-register', [LoginController::class, 'postRegister']);
+
+    Route::get('/logout', [LoginController::class, 'logout']);
+
+});
+
+
+
+
+
+Route::prefix('dashboard')->group(function () {
+    Route::get('/', [AdminController::class, 'index'])->middleware('auth');
+    //
+    Route::get('/web', [WebController::class, 'index']);
+    Route::get('/web-create', [WebController::class, 'createIndex']);
+    Route::post('/web-save', [WebController::class, 'save']);
+
+    Route::get('/web-edit/{id}', [WebController::class, 'edit']);
+    Route::post('/web-update/{id}', [WebController::class, 'update']);
+    Route::get('/web-delete/{id}', [WebController::class, 'destroy']);
 });
