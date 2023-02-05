@@ -4,7 +4,9 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\PostController;
 use App\Http\Controllers\WebController;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -47,4 +49,10 @@ Route::prefix('dashboard')->group(function () {
     Route::get('/web-edit/{id}', [WebController::class, 'edit']);
     Route::post('/web-update/{id}', [WebController::class, 'update']);
     Route::get('/web-delete/{id}', [WebController::class, 'destroy']);
+
+    Route::get('/posts', [PostController::class, 'index']);
+    Route::get('/post/create', [PostController::class, 'create']);
+    Route::post('/post/get-content', [PostController::class, 'getContent']);
+    Route::post('/post/save', [PostController::class, 'save']);
+    Route::get('/post-delete/{id}', [PostController::class, 'destroy']);
 });

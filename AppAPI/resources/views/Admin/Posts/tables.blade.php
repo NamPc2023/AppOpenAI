@@ -252,7 +252,7 @@
       <div class="pagetitle">
         <h1>General Tables</h1>
         <button type="button" class="btn btn-success">
-            <a style="color: aliceblue" href="/dashboard/web-create">Add</a>
+            <a style="color: aliceblue" href="/dashboard/post/create">Add</a>
         </button>
         @if(count($errors) > 0)
             @foreach ($errors->all() as $error)
@@ -273,10 +273,8 @@
                   <thead>
                     <tr>
                       <th scope="col">#</th>
-                      <th scope="col">Name</th>
-                      <th scope="col">Url</th>
-                      <th scope="col">Admin</th>
-                      <th scope="col">Password</th>
+                      <th scope="col">Title</th>
+                      <th scope="col">Content</th>
                       <th scope="col">Action</th>
                     </tr>
                   </thead>
@@ -285,16 +283,14 @@
                         @foreach ($data as $k => $value)
                             <tr>
                                 <th scope="row">{{++$k}}</th>
-                                <td>{{$value->name}}</td>
-                                <td>{{$value->url}}</td>
-                                <td>{{$value->admin}}</td>
-                                <td>{{$value->password}}</td>
+                                <td>{{$value->title}}</td>
+                                <td>{{$value->content}}</td>
                                 <td>
-                                    <button type="button" class="btn btn-primary">
+                                    {{-- <button type="button" class="btn btn-primary">
                                         <a style="color: aliceblue" href="/dashboard/web-edit/{{$value->id}}">Edit</a>
-                                    </button>
+                                    </button> --}}
                                     <button type="button" class="btn btn-danger">
-                                        <a style="color: aliceblue" href="/dashboard/web-delete/{{$value->id}}">Delete</a>
+                                        <a style="color: aliceblue" href="/dashboard/post-delete/{{$value->id}}">Delete</a>
                                     </button>
                                 </td>
                             </tr>

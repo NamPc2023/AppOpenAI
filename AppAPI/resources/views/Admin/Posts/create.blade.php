@@ -250,64 +250,42 @@
     <main id="main" class="main">
   
       <div class="pagetitle">
-        <h1>General Tables</h1>
-        <button type="button" class="btn btn-success">
-            <a style="color: aliceblue" href="/dashboard/web-create">Add</a>
-        </button>
-        @if(count($errors) > 0)
-            @foreach ($errors->all() as $error)
-                <p style="color:rgb(0, 255, 76)">{{ $error }}</p>
-            @endforeach
-        @endif
+        <h1>Create post</h1>
+
       </div><!-- End Page Title -->
   
       <section class="section">
         <div class="row">
           <div class="col-lg-12">
-            <div class="card">
-              <div class="card-body">
-                <h5 class="card-title">Table with stripped rows</h5>
+            @if(session('content'))
+                <form action="/dashboard/post/save" method="POST">
+            @else
+                <form action="/dashboard/post/get-content" method="POST">
+            @endif
+                <input type="hidden" name="_token" value="{{ csrf_token() }}" />
+               
+                @if(session('postName'))
+                    <div class="mb-3">
+                        <label for="" class="form-label">Title</label>
+                        <input type="text" name="postName" value="{{ session('postName') }}" class="form-control">
+                    </div>
+                @else
+                    <div class="mb-3">
+                        <label for="" class="form-label">Title</label>
+                        <input type="text" name="postName" class="form-control">
+                    </div>
+                @endif
 
-                <!-- Table with stripped rows -->
-                <table class="table table-striped">
-                  <thead>
-                    <tr>
-                      <th scope="col">#</th>
-                      <th scope="col">Name</th>
-                      <th scope="col">Url</th>
-                      <th scope="col">Admin</th>
-                      <th scope="col">Password</th>
-                      <th scope="col">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    @if(count($data) > 0)
-                        @foreach ($data as $k => $value)
-                            <tr>
-                                <th scope="row">{{++$k}}</th>
-                                <td>{{$value->name}}</td>
-                                <td>{{$value->url}}</td>
-                                <td>{{$value->admin}}</td>
-                                <td>{{$value->password}}</td>
-                                <td>
-                                    <button type="button" class="btn btn-primary">
-                                        <a style="color: aliceblue" href="/dashboard/web-edit/{{$value->id}}">Edit</a>
-                                    </button>
-                                    <button type="button" class="btn btn-danger">
-                                        <a style="color: aliceblue" href="/dashboard/web-delete/{{$value->id}}">Delete</a>
-                                    </button>
-                                </td>
-                            </tr>
-                        @endforeach
-                    @endif
-                    
-                
-                  </tbody>
-                </table>
-                <!-- End Table with stripped rows -->
-  
-              </div>
-            </div>
+                 @if(session('content'))
+                    <div class="mb-3">
+                        <label for="" class="form-label">Content</label>
+                        <textarea class="form-control" name="content" rows="10" cols="70">{{ session('content') }}</textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                @else
+                    <button type="submit" class="btn btn-primary">Make a question</button>
+                @endif
+              </form>
           </div>
         </div>
       </section>
