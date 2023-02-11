@@ -6,6 +6,8 @@ use App\Http\Controllers\LoginController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\WebController;
+use App\Http\Controllers\OutlineController;
+use App\Http\Controllers\ScriptController;
 
 /*
 |--------------------------------------------------------------------------
@@ -36,23 +38,26 @@ Route::prefix('user')->group(function () {
 });
 
 
-
-
-
 Route::prefix('dashboard')->group(function () {
     Route::get('/', [AdminController::class, 'index'])->middleware('auth');
     //
-    Route::get('/web', [WebController::class, 'index']);
-    Route::get('/web-create', [WebController::class, 'createIndex']);
-    Route::post('/web-save', [WebController::class, 'save']);
+    Route::get('/web', [WebController::class, 'index'])->middleware('auth');
+    Route::get('/web-create', [WebController::class, 'createIndex'])->middleware('auth');
+    Route::post('/web-save', [WebController::class, 'save'])->middleware('auth');
 
-    Route::get('/web-edit/{id}', [WebController::class, 'edit']);
-    Route::post('/web-update/{id}', [WebController::class, 'update']);
-    Route::get('/web-delete/{id}', [WebController::class, 'destroy']);
+    Route::get('/web-edit/{id}', [WebController::class, 'edit'])->middleware('auth');
+    Route::post('/web-update/{id}', [WebController::class, 'update'])->middleware('auth');
+    Route::get('/web-delete/{id}', [WebController::class, 'destroy'])->middleware('auth');
 
-    Route::get('/posts', [PostController::class, 'index']);
-    Route::get('/post/create', [PostController::class, 'create']);
-    Route::post('/post/get-content', [PostController::class, 'getContent']);
-    Route::post('/post/save', [PostController::class, 'save']);
-    Route::get('/post-delete/{id}', [PostController::class, 'destroy']);
+    //outline
+    Route::get('/outline', [OutlineController::class, 'index'])->middleware('auth');
+    Route::post('/outline/create', [OutlineController::class, 'getOutlineContent'])->middleware('auth');
+
+    Route::get('/convert', [OutlineController::class, 'convertIndex'])->middleware('auth');
+    Route::post('/convert/create', [OutlineController::class, 'convert'])->middleware('auth');
+
+    //script
+    Route::get('/script', [ScriptController::class, 'index'])->middleware('auth');
+    Route::post('/script/create', [ScriptController::class, 'getScriptContent'])->middleware('auth');
+    
 });

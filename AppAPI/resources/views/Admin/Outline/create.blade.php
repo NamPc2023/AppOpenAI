@@ -250,17 +250,17 @@
     <main id="main" class="main">
   
       <div class="pagetitle">
-        <h1>Create post</h1>
+        <h1>Tạo outline</h1>
 
       </div><!-- End Page Title -->
   
       <section class="section">
         <div class="row">
           <div class="col-lg-12">
-            @if(session('content'))
-                <form action="/dashboard/post/save" method="POST">
+            @if(session('outline'))
+                <form action="/dashboard/post/create" method="POST">
             @else
-                <form action="/dashboard/post/get-content" method="POST">
+                <form action="/dashboard/outline/create" method="POST">
             @endif
                 <input type="hidden" name="_token" value="{{ csrf_token() }}" />
                
@@ -276,15 +276,23 @@
                     </div>
                 @endif
 
-                 @if(session('content'))
+                 @if(session('outline'))
                     <div class="mb-3">
                         <label for="" class="form-label">Content</label>
-                        <textarea class="form-control" name="content" rows="10" cols="70">{{ session('content') }}</textarea>
+                        <textarea class="form-control" name="outline" rows="10" cols="70">{{ session('outline') }}</textarea>
                     </div>
                     <button type="submit" class="btn btn-primary">Save</button>
                 @else
-                    <button type="submit" class="btn btn-primary">Make a question</button>
+                    <button type="submit" class="btn btn-primary">Create</button>
                 @endif
+{{-- 
+                @if(session('content'))
+                  <div class="mb-3">
+                      <label for="" class="form-label">Content</label>
+                      <textarea class="form-control" name="content" rows="10" cols="70">{{ session('outline') }}</textarea>
+                  </div>
+                  <button type="submit" class="btn btn-primary">Create Content</button>
+              @endif --}}
               </form>
           </div>
         </div>

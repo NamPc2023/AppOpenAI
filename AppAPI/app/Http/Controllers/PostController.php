@@ -24,22 +24,39 @@ class PostController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function getContent(Request $request)
-    {
-        $postName = $request->input('postName');
-        $result = OpenAI::completions()->create([
-            'model'=>"text-davinci-003",
-            "prompt"=>trim($postName),
-            "temperature"=>1,
-            "max_tokens"=>4000,
-            "top_p"=>1,
-            "frequency_penalty"=>0,
-            "presence_penalty"=>0
-        ]);
+   
 
-       $content = $result['choices'][0]['text'];
-        return redirect('dashboard/post/create')->with('content',$content)->with('postName',$postName);
+    public function createPost(Request $request){
+
+        $postName = $request->postName;
+        $outline = $request['outline'];
+
+        $data = array_filter(preg_split("/(\r\n|\n|\r)/", $outline));
+        
+    
+
+        $contents = [];
+        foreach($data as $k => $value){
+            $result = OpenAI::completions()->create([
+                'model'=>"text-davinci-003",
+                "prompt"=>trim($value),
+                "temperature"=>1,
+                "max_tokens"=>1000,
+                "top_p"=>1,
+                "frequency_penalty"=>0,
+                "presence_penalty"=>0
+            ]);
+            $contents[] = $result['choices'][0]['text'];
+            return;
+            
+        }
+        
+        echo '<pre>' , var_dump($data) , '</pre>';
+        
+        // return redirect('dashboard/post/outline')->with('outline',$outline)->with('postName',$postName);
+        
     }
+    
 
     /**
      * Store a newly created resource in storage.
@@ -47,17 +64,12 @@ class PostController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function save(Request $request)
-    {   
+    // public function save(Request $request)
+    // {    
+        
+ 
 
-        $post = new Post();
-        $post->title = $request['postName'];
-        $post->content = $request['content'];
-        $post->save();
-
-        return redirect('dashboard/posts');
-
-    }
+    // }
 
     /**
      * Display the specified resource.

@@ -252,7 +252,7 @@
       <div class="pagetitle">
         <h1>General Tables</h1>
         <button type="button" class="btn btn-success">
-            <a style="color: aliceblue" href="/dashboard/post/create">Add</a>
+            <a style="color: aliceblue" href="/dashboard/post/outline">Add</a>
         </button>
         @if(count($errors) > 0)
             @foreach ($errors->all() as $error)
