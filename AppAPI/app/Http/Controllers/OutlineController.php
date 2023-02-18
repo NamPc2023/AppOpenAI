@@ -3,9 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Outline;
+use App\Models\Post;
 use Illuminate\Http\Request;
 use OpenAI\Laravel\Facades\OpenAI;
-use VXM\Async\AsyncFacade as Async;
+
 
 
 class OutlineController extends Controller
@@ -30,7 +31,7 @@ class OutlineController extends Controller
                 'model'=>"text-davinci-003",
                 "prompt"=>trim($keyword),
                 "temperature"=>1,
-                "max_tokens"=>4000,
+                "max_tokens"=>3000,
                 "top_p"=>1,
                 "frequency_penalty"=>0,
                 "presence_penalty"=>0
@@ -41,62 +42,6 @@ class OutlineController extends Controller
  
         return redirect('dashboard/outline')->with('outline',$outline)->with('postName',$postName);
 
-    }
-
-    public function convertIndex(Request $request)
-    {
-        return view('Admin.Outline.convert');
-
-    }
-
-
-    public function Each($data){
-
-        $contents = [];
-        foreach($data as $k => $value){
-            $str = substr($value,stripos($value,'.')+1);
-
-            $result = OpenAI::completions()->create([
-                'model'=>"text-davinci-003",
-                "prompt"=>"Viết bài ".trim($str),
-                "temperature"=>1,
-                "max_tokens"=>4000,
-                "top_p"=>1,
-                "frequency_penalty"=>0,
-                "presence_penalty"=>0
-            ]);
-            $contents[$str] = $result['choices'][0]['text'];
-        }
-        return $contents;
-    }
-
-    public function convert(Request $request)
-    {
-        $outline = $request->input('outline');
-
-        if(!empty($outline)){
-
-            $data = array_filter(preg_split("/(\r\n|\n|\r)/", $outline));
-
-            Async::run(function () use ($data) {
-               return $this->Each($data);
-            });
-            
-            echo '<pre>' , var_dump(Async::wait()) , '</pre>';
-        }
-        // echo '<pre>' , var_dump($contents) , '</pre>';
-        // return redirect('dashboard/convert')->with('post',$post)->with('outline',$outline);
-
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
     }
 
     /**

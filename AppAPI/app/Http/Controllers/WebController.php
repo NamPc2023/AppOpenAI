@@ -74,7 +74,7 @@ class WebController extends Controller
      * @param  \App\Models\Web  $web
      * @return \Illuminate\Http\Response
      */
-    public function edit(Request $request,$id)
+    public function edit($id)
     {
         $web = Web::findOrFail($id);
         return view('Admin.Webs.edit')->with('data', $web);
@@ -111,7 +111,7 @@ class WebController extends Controller
      * @param  \App\Models\Web  $web
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Request $request,$id)
+    public function destroy($id)
     {
         $web = Web::findOrFail($id);
         if($web) $web->delete();

@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
-  <title>Tables / Data - NiceAdmin Bootstrap Template</title>
+  <title>Danh sách bài viết</title>
   <meta content="" name="description">
   <meta content="" name="keywords">
 
@@ -34,7 +34,6 @@
       </div><!-- End Search Bar -->
   
       @include('Admin.layout.nav');
-  
     </header><!-- End Header -->
   
     <!-- ======= Sidebar ======= -->
@@ -43,42 +42,56 @@
     <main id="main" class="main">
   
       <div class="pagetitle">
-        <h1>Tạo outline</h1>
-
+        <h1>Danh sách bài viết</h1>
+        @if(count($errors) > 0)
+            @foreach ($errors->all() as $error)
+                <p style="color:rgb(0, 255, 76)">{{ $error }}</p>
+            @endforeach
+        @endif
       </div><!-- End Page Title -->
   
       <section class="section">
         <div class="row">
           <div class="col-lg-12">
-            @if(session('outline'))
-                <form action="/dashboard/post/create" method="POST">
-            @else
-                <form action="/dashboard/outline/create" method="POST">
-            @endif
-                <input type="hidden" name="_token" value="{{ csrf_token() }}" />
-               
-                @if(session('postName'))
-                    <div class="mb-3">
-                        <label for="" class="form-label">Tên outline</label>
-                        <input type="text" name="postName" value="{{ session('postName') }}" class="form-control">
-                    </div>
-                @else
-                    <div class="mb-3">
-                        <label for="" class="form-label">Tên outline</label>
-                        <input type="text" name="postName" class="form-control">
-                    </div>
-                @endif
+            <div class="card">
+              <div class="card-body">
 
-                 @if(session('outline'))
-                    <div class="mb-3">
-                        <label for="" class="form-label">Nội dung</label>
-                        <textarea class="form-control" name="outline" rows="10" cols="70">{{ session('outline') }}</textarea>
-                    </div>
-                @else
-                    <button type="submit" class="btn btn-primary">Tạo</button>
-                @endif
-
-              </form>
+                <!-- Table with stripped rows -->
+                <table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th scope="col">STT</th>
+                      <th scope="col">Title</th>
+                      <th scope="col">Content</th>
+                      <th scope="col">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @if(count($data) > 0)
+                        @foreach ($data as $k => $value)
+                            <tr>
+                                <th scope="row">{{++$k}}</th>
+                                <td>{{$value->title}}</td>
+                                <td>{{$value->content}}</td>
+                                <td>
+                                    <button type="button" class="btn btn-primary">
+                                        <a style="color: aliceblue" href="/dashboard/post-edit/{{$value->id}}">Sửa</a>
+                                    </button>
+                                    <form action="/dashboard/post-delete/{{$value->id}}" method="POST">
+                                      @method('DELETE')
+                                      @csrf
+                                      <button type="submit" class="btn btn-danger"> Xóa</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        @endforeach
+                    @endif
+                  </tbody>
+                </table>
+                <!-- End Table with stripped rows -->
+  
+              </div>
+            </div>
           </div>
         </div>
       </section>

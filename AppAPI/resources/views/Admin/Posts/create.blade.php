@@ -43,41 +43,45 @@
     <main id="main" class="main">
   
       <div class="pagetitle">
-        <h1>Tạo outline</h1>
+        <h1>Tạo bài viết từ outline</h1>
 
       </div><!-- End Page Title -->
   
       <section class="section">
         <div class="row">
           <div class="col-lg-12">
-            @if(session('outline'))
-                <form action="/dashboard/post/create" method="POST">
+            @if(session('content'))
+                <form action="/dashboard/post/save" method="POST">
+                  <div class="mb-3">
+                    <label for="" class="form-label">Tiêu đề bài viết</label>
+                    <input class="form-control" name="title">
+                  </div>
             @else
-                <form action="/dashboard/outline/create" method="POST">
+                <form action="/dashboard/post-get-content" method="POST">
             @endif
                 <input type="hidden" name="_token" value="{{ csrf_token() }}" />
-               
-                @if(session('postName'))
-                    <div class="mb-3">
-                        <label for="" class="form-label">Tên outline</label>
-                        <input type="text" name="postName" value="{{ session('postName') }}" class="form-control">
-                    </div>
-                @else
-                    <div class="mb-3">
-                        <label for="" class="form-label">Tên outline</label>
-                        <input type="text" name="postName" class="form-control">
-                    </div>
-                @endif
 
-                 @if(session('outline'))
+                @if(session('outline'))
                     <div class="mb-3">
-                        <label for="" class="form-label">Nội dung</label>
+                        <label for="" class="form-label">Outline</label>
                         <textarea class="form-control" name="outline" rows="10" cols="70">{{ session('outline') }}</textarea>
                     </div>
                 @else
-                    <button type="submit" class="btn btn-primary">Tạo</button>
+                    <div class="mb-3">
+                        <label for="" class="form-label">Outline</label>
+                        <textarea class="form-control" name="outline" rows="10" cols="70"></textarea>
+                    </div>
                 @endif
 
+                 @if(session('content'))
+                    <div class="mb-3">
+                        <label for="" class="form-label">Nội dung</label>
+                        <textarea class="form-control" name="content" rows="10" cols="70">{{ session('content') }}</textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Lưu bài viết</button>
+                @else
+                    <button type="submit" class="btn btn-primary">Tạo bài viết</button>
+                @endif
               </form>
           </div>
         </div>

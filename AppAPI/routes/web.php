@@ -20,9 +20,7 @@ use App\Http\Controllers\ScriptController;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/',[LoginController::class, 'loginIndex'])->name('Login');
 
 
 Route::prefix('user')->group(function () {
@@ -53,11 +51,13 @@ Route::prefix('dashboard')->group(function () {
     Route::get('/outline', [OutlineController::class, 'index'])->middleware('auth');
     Route::post('/outline/create', [OutlineController::class, 'getOutlineContent'])->middleware('auth');
 
-    Route::get('/convert', [OutlineController::class, 'convertIndex'])->middleware('auth');
-    Route::post('/convert/create', [OutlineController::class, 'convert'])->middleware('auth');
-
-    //script
-    Route::get('/script', [ScriptController::class, 'index'])->middleware('auth');
-    Route::post('/script/create', [ScriptController::class, 'getScriptContent'])->middleware('auth');
+    //post
+    Route::get('/post-list', [PostController::class, 'index'])->middleware('auth');
+    Route::get('/post-create', [PostController::class, 'create'])->middleware('auth');
+    Route::post('/post-get-content', [PostController::class, 'getPostContent'])->middleware('auth');
+    Route::post('/post/save', [PostController::class, 'postSave'])->middleware('auth');
+    Route::get('/post-edit/{id}', [PostController::class, 'edit'])->middleware('auth');
+    Route::put('/post-update/{id}', [PostController::class, 'update'])->middleware('auth');
+    Route::delete('/post-delete/{id}', [PostController::class, 'destroy'])->middleware('auth');
     
 });
