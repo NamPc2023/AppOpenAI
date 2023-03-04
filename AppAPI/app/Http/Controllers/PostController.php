@@ -3,12 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Models\Post;
+use Spatie\Async\Pool;
 use Illuminate\Http\Request;
 use OpenAI\Laravel\Facades\OpenAI;
-use VXM\Async\AsyncFacade as Async;
+use App\Exceptions\InvalidOrderException;
+use Illuminate\Support\Facades\Validator;
+
 
 class PostController extends Controller
 {
+    public $content = '';
+
     /**
      * Display a listing of the resource.
      *
@@ -24,46 +29,81 @@ class PostController extends Controller
     public function create(Request $request)
     {
         return view('Admin.Posts.create');
-
     }
 
 
-    public function Each($data){
+    public function Each($data)
+    {
 
         $contents = [];
-        foreach($data as $k => $value){
-
-            $result = OpenAI::completions()->create([
-                'model'=>"text-davinci-003",
-                "prompt"=>trim($value),
-                "temperature"=>1,
-                "max_tokens"=>4000,
-                "top_p"=>1,
-                "frequency_penalty"=>0,
-                "presence_penalty"=>0
-            ]);
-            $contents[] = strtoupper($value)." :".$result['choices'][0]['text'].'<br/>';
+        foreach ($data as $k => $value) {
+            // $value = substr($value,0,stripos($value,'</p>'));
+            $value = trim(preg_replace('/\s+/', ' ', str_replace('&nbsp;', ' ', strip_tags($value))));
+            if (!empty($value)) {
+                $result = OpenAI::completions()->create([
+                    'model' => "text-davinci-003",
+                    "prompt" => $value,
+                    "temperature" => 1,
+                    "max_tokens" => 4000,
+                    "top_p" => 1,
+                    "frequency_penalty" => 0,
+                    "presence_penalty" => 0
+                ]);
+                $contents[] = trim(preg_replace('/\s+/', ' ', '<p>' . ucwords($value) . '</p><p>' . $result['choices'][0]['text'])) . '</p>';
+            }
         }
         return $contents;
     }
 
     public function getPostContent(Request $request)
     {
-        $outline = $request['outline'];
 
-        if(!empty($outline)){
+        $validator = Validator::make(
+            $request->all(),
+            [
+                'outline' => 'required',
+            ],
+            [
+                'outline' => 'Vui lòng nhập thông tin !',
+            ]
+        );
 
-            $data = array_filter(preg_split("/(\r\n|\n|\r)/", $outline));
-
-            Async::run(function () use ($data) {
-               return $this->Each($data);
-            });
-            
-            $content = implode(' ',Async::wait()[0]);
-            // echo '<prev>',var_dump(Async::wait()),'</prev>';
+        if ($validator->fails()) {
+            return redirect('/dashboard/post-create')
+                ->withErrors($validator)
+                ->withInput();
         }
-    
-        return redirect('/dashboard/post-create')->with('content',$content)->with('outline',$outline);
+
+        $outline = $validator->safe()->only(['outline'])['outline'];
+        if (!empty($outline)) {
+            // $data = array_filter(preg_split("/(\r\n|\n|\r)/", $outline));
+            $data = array_filter(explode('<p>', $outline));
+            $results = array();
+            foreach ($data as $val) {
+                $scripts = explode('<br>', $val);
+                foreach ($scripts as $script) {
+                    $results[] = $script;
+                }
+            }
+
+            if (is_array($results)) {
+                $pool = Pool::create();
+
+                $pool->add(function () use ($results) {
+                    return $this->Each($results);
+                })->then(function ($output) {
+                    $this->content = implode(' ', $output);
+                })->catch(function (InvalidOrderException $e) {
+                    //error
+                });
+
+                $pool->wait();
+
+                return redirect('/dashboard/post-create')->with('content', $this->content)->with('outline', $outline);
+            } else {
+                return redirect('/dashboard/post-create');
+            }
+        }
     }
 
     /**
@@ -74,12 +114,28 @@ class PostController extends Controller
 
     public function postSave(Request $request)
     {
-        $title = $request['title'];
-        $postContent = $request['content'];
+        $validator = Validator::make(
+            $request->all(),
+            [
+                'title' => 'required',
+                'content' => 'required',
+            ],
+            [
+                'title' => 'Vui lòng nhập thông tin !',
+                'content' => 'Vui lòng nhập thông tin !',
+            ]
+        );
+
+        if ($validator->fails()) {
+            return redirect('/dashboard/post-create')
+                ->withErrors($validator)
+                ->withInput()->with('outline', $request['outline'])->with('content', $request['content']);
+        }
+        $postData = $validator->safe()->only(['title', 'content']);
 
         $post = new Post();
-        $post->title = $title;
-        $post->content = $postContent;
+        $post->title = $postData['title'];
+        $post->content = $postData['content'];
         $post->save();
 
         return redirect('/dashboard/post-list');
@@ -105,11 +161,10 @@ class PostController extends Controller
      * @param  \App\Models\Post  $post
      * @return \Illuminate\Http\Response
      */
-    public function edit(Request $request,$id)
+    public function edit(Request $request, $id)
     {
         $post = Post::findOrFail($id);
         return view('Admin.Posts.edit')->with('post', $post);
-
     }
 
     /**
@@ -121,10 +176,31 @@ class PostController extends Controller
      */
     public function update(Request $request, $id)
     {
+        $validator = Validator::make(
+            $request->all(),
+            [
+                'title' => 'required',
+                'content' => 'required',
+            ],
+            [
+                'title' => 'Không để trống thông tin !',
+                'content' => 'Không để trống thông tin !',
+            ]
+        );
+
+        if ($validator->fails()) {
+            return redirect('/dashboard/post-edit/'.$id)
+                ->withErrors($validator)
+                ->withInput();
+        }
+
+        $postData = $validator->safe()->only(['title', 'content']);
+
         $post = Post::findOrFail($id);
-        $post->title = $request['title'];
-        $post->content = $request['content'];
+        $post->title = $postData['title'];
+        $post->content = $postData['content'];
         $post->save();
+
         return redirect('/dashboard/post-list');
     }
 

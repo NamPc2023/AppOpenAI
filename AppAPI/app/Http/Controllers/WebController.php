@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Web;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class WebController extends Controller
 {
@@ -39,16 +40,34 @@ class WebController extends Controller
     public function save(Request $request)
     {
         
-        $name = $request->input('name');
-        $url = $request->input('url');
-        $admin = $request->input('admin');
-        $password = $request->input('password');
+        $validator = Validator::make(
+            $request->all(),
+            [
+                'name' => 'required',
+                'url' => 'required',
+                'admin' => 'required',
+                'password' => 'required',
+            ],
+            [
+                'name' => 'Vui lòng điền thông tin !',
+                'url' => 'Vui lòng điền thông tin !',
+                'admin' => 'Vui lòng điền thông tin !',
+                'password' => 'Vui lòng điền thông tin !',
+            ]
+        );
 
+        if ($validator->fails()) {
+            return redirect('/dashboard/web-create')
+                ->withErrors($validator)
+                ->withInput();
+        }
+        $data = $validator->safe()->only(['name','url','admin','password']);
+        
         $web = new Web();
-        $web->name = $name;
-        $web->url = $url;
-        $web->admin = $admin;
-        $web->password = $password;
+        $web->name = $data['name'];
+        $web->url = $data['url'];
+        $web->admin = $data['admin'];
+        $web->password = $data['password'];
         $web->save();
 
         return redirect('/dashboard/web')->withErrors([
@@ -89,17 +108,34 @@ class WebController extends Controller
      */
     public function update(Request $request, $id)
     {
+        $validator = Validator::make(
+            $request->all(),
+            [
+                'name' => 'required',
+                'url' => 'required',
+                'admin' => 'required',
+                'password' => 'required',
+            ],
+            [
+                'name' => 'Vui lòng điền thông tin !',
+                'url' => 'Vui lòng điền thông tin !',
+                'admin' => 'Vui lòng điền thông tin !',
+                'password' => 'Vui lòng điền thông tin !',
+            ]
+        );
 
-        $name = $request->input('name');
-        $url = $request->input('url');
-        $admin = $request->input('admin');
-        $password = $request->input('password');
+        if ($validator->fails()) {
+            return redirect('/dashboard/web-edit/'.$id)
+                ->withErrors($validator)
+                ->withInput();
+        }
+        $data = $validator->safe()->only(['name','url','admin','password']);
 
         $web = Web::findOrFail($id);
-        $web->name = $name;
-        $web->url = $url;
-        $web->admin = $admin;
-        $web->password = $password;
+        $web->name = $data['name'];
+        $web->url = $data['url'];
+        $web->admin = $data['admin'];
+        $web->password = $data['password'];
         $web->save();
 
         return redirect('/dashboard/web');

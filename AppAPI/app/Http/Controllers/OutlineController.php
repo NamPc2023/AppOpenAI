@@ -6,8 +6,7 @@ use App\Models\Outline;
 use App\Models\Post;
 use Illuminate\Http\Request;
 use OpenAI\Laravel\Facades\OpenAI;
-
-
+use Illuminate\Support\Facades\Validator;
 
 class OutlineController extends Controller
 {
@@ -23,7 +22,22 @@ class OutlineController extends Controller
 
     public function getOutlineContent(Request $request)
     {
-        $postName = $request->input('postName');
+        $validator = Validator::make(
+            $request->all(),
+            [
+                'postName' => 'required',
+            ],
+            [
+                'postName' => 'Vui lòng điền thông tin !',
+            ]
+        );
+
+        if ($validator->fails()) {
+            return redirect('/dashboard/outline')
+                ->withErrors($validator)
+                ->withInput();
+        }
+        $postName = $validator->safe()->only(['postName'])['postName'];
         if(!empty($postName)){
             $keyword = 'Tạo outline với chủ đề "'.$postName.'" bằng tiếng việt';
 
@@ -39,9 +53,7 @@ class OutlineController extends Controller
 
             $outline = $result['choices'][0]['text'];
         }
- 
         return redirect('dashboard/outline')->with('outline',$outline)->with('postName',$postName);
-
     }
 
     /**

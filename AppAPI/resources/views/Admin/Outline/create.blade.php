@@ -50,22 +50,23 @@
       <section class="section">
         <div class="row">
           <div class="col-lg-12">
-            @if(session('outline'))
-                <form action="/dashboard/post/create" method="POST">
-            @else
-                <form action="/dashboard/outline/create" method="POST">
-            @endif
+              <form action="/dashboard/outline/create" method="POST">
                 <input type="hidden" name="_token" value="{{ csrf_token() }}" />
-               
                 @if(session('postName'))
                     <div class="mb-3">
                         <label for="" class="form-label">Tên outline</label>
                         <input type="text" name="postName" value="{{ session('postName') }}" class="form-control">
+                        @error('postName')
+                          <div class="alert alert-danger">{{ $message }}</div>
+                        @enderror
                     </div>
                 @else
                     <div class="mb-3">
                         <label for="" class="form-label">Tên outline</label>
                         <input type="text" name="postName" class="form-control">
+                        @error('postName')
+                          <div class="alert alert-danger">{{ $message }}</div>
+                        @enderror
                     </div>
                 @endif
 
@@ -74,6 +75,7 @@
                         <label for="" class="form-label">Nội dung</label>
                         <textarea class="form-control" name="outline" rows="10" cols="70">{{ session('outline') }}</textarea>
                     </div>
+                    <button type="submit" class="btn btn-primary">Tạo lại</button>
                 @else
                     <button type="submit" class="btn btn-primary">Tạo</button>
                 @endif
