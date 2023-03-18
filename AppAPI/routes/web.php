@@ -4,6 +4,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\GoogleController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\WebController;
 use App\Http\Controllers\OutlineController;
@@ -60,4 +61,5 @@ Route::prefix('dashboard')->group(function () {
     Route::put('/post-update/{id}', [PostController::class, 'update'])->middleware('auth');
     Route::delete('/post-delete/{id}', [PostController::class, 'destroy'])->middleware('auth');
     
+    Route::get('/google/search', [GoogleController::class, 'search'])->middleware('auth');
 });

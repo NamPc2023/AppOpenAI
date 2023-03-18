@@ -20,7 +20,7 @@
       <li class="nav-item">
         <a class="nav-link " href="/dashboard/post-create">
           <i class="bi bi-journal-text"></i>
-          <span>Tạo bài từ outline</span>
+          <span>Tạo bài viết theo từ khóa</span>
         </a>
       </li>
 

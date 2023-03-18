@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Outline;
 use App\Models\Post;
 use Illuminate\Http\Request;
-use OpenAI\Laravel\Facades\OpenAI;
 use Illuminate\Support\Facades\Validator;
+use OpenAI\Laravel\Facades\OpenAI;
 
 class OutlineController extends Controller
 {

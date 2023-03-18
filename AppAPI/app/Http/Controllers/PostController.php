@@ -5,9 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Post;
 use Spatie\Async\Pool;
 use Illuminate\Http\Request;
-use OpenAI\Laravel\Facades\OpenAI;
 use App\Exceptions\InvalidOrderException;
 use Illuminate\Support\Facades\Validator;
+use Orhanerday\OpenAi\OpenAi;
 
 
 class PostController extends Controller
@@ -40,16 +40,25 @@ class PostController extends Controller
             // $value = substr($value,0,stripos($value,'</p>'));
             $value = trim(preg_replace('/\s+/', ' ', str_replace('&nbsp;', ' ', strip_tags($value))));
             if (!empty($value)) {
-                $result = OpenAI::completions()->create([
-                    'model' => "text-davinci-003",
-                    "prompt" => $value,
-                    "temperature" => 1,
-                    "max_tokens" => 4000,
-                    "top_p" => 1,
-                    "frequency_penalty" => 0,
-                    "presence_penalty" => 0
+                $open_ai_key = env('OPENAI_API_KEY', false);
+                $open_ai = new OpenAi($open_ai_key);
+
+                $keyword = 'Viết một bài hoàn chỉnh theo từ khóa "' . trim($value) . '"';
+                $response = $open_ai->chat([
+                    'model' => 'gpt-3.5-turbo',
+                    'messages' =>      [
+                        [
+                            "role" => "system",
+                            "content" => $keyword,
+                        ],
+                    ],
+                    'temperature' => 0.3,
+                    'max_tokens' => 4000,
+                    'frequency_penalty' => 0,
+                    'presence_penalty' => 0,
                 ]);
-                $contents[] = trim(preg_replace('/\s+/', ' ', '<p>' . ucwords($value) . '</p><p>' . $result['choices'][0]['text'])) . '</p>';
+                $result = json_decode($response, TRUE);
+                $contents[] = trim(preg_replace('/\s+/', ' ', '<p>' . ucwords($value) . '</p><p>' . $result['choices'][0]['message']['content'])) . '</p>';
             }
         }
         return $contents;
@@ -94,11 +103,10 @@ class PostController extends Controller
                 })->then(function ($output) {
                     $this->content = implode(' ', $output);
                 })->catch(function (InvalidOrderException $e) {
-                    //error
+                    echo $e->getMessage();
                 });
 
                 $pool->wait();
-
                 return redirect('/dashboard/post-create')->with('content', $this->content)->with('outline', $outline);
             } else {
                 return redirect('/dashboard/post-create');
@@ -189,7 +197,7 @@ class PostController extends Controller
         );
 
         if ($validator->fails()) {
-            return redirect('/dashboard/post-edit/'.$id)
+            return redirect('/dashboard/post-edit/' . $id)
                 ->withErrors($validator)
                 ->withInput();
         }
