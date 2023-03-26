@@ -6,8 +6,9 @@ use App\Models\Post;
 use Spatie\Async\Pool;
 use Illuminate\Http\Request;
 use App\Exceptions\InvalidOrderException;
+use App\Jobs\ProcessPost;
 use Illuminate\Support\Facades\Validator;
-use Orhanerday\OpenAi\OpenAi;
+use Illuminate\Support\Facades\Http;
 
 
 class PostController extends Controller
@@ -34,34 +35,8 @@ class PostController extends Controller
 
     public function Each($data)
     {
-
-        $contents = [];
-        foreach ($data as $k => $value) {
-            // $value = substr($value,0,stripos($value,'</p>'));
-            $value = trim(preg_replace('/\s+/', ' ', str_replace('&nbsp;', ' ', strip_tags($value))));
-            if (!empty($value)) {
-                $open_ai_key = env('OPENAI_API_KEY', false);
-                $open_ai = new OpenAi($open_ai_key);
-
-                $keyword = 'Viết một bài hoàn chỉnh theo từ khóa "' . trim($value) . '"';
-                $response = $open_ai->chat([
-                    'model' => 'gpt-3.5-turbo',
-                    'messages' =>      [
-                        [
-                            "role" => "system",
-                            "content" => $keyword,
-                        ],
-                    ],
-                    'temperature' => 0.3,
-                    'max_tokens' => 4000,
-                    'frequency_penalty' => 0,
-                    'presence_penalty' => 0,
-                ]);
-                $result = json_decode($response, TRUE);
-                $contents[] = trim(preg_replace('/\s+/', ' ', '<p>' . ucwords($value) . '</p><p>' . $result['choices'][0]['message']['content'])) . '</p>';
-            }
-        }
-        return $contents;
+        ProcessPost::dispatch($data);
+        echo "Tạo bài viết thàng công ";
     }
 
     public function getPostContent(Request $request)
@@ -96,20 +71,8 @@ class PostController extends Controller
             }
 
             if (is_array($results)) {
-                $pool = Pool::create();
-
-                $pool->add(function () use ($results) {
-                    return $this->Each($results);
-                })->then(function ($output) {
-                    $this->content = implode(' ', $output);
-                })->catch(function (InvalidOrderException $e) {
-                    echo $e->getMessage();
-                });
-
-                $pool->wait();
-                return redirect('/dashboard/post-create')->with('content', $this->content)->with('outline', $outline);
-            } else {
-                return redirect('/dashboard/post-create');
+                $this->Each($results);
+                // return redirect('/dashboard/post-create')->with('content', $this->content)->with('outline', $outline);
             }
         }
     }
@@ -122,31 +85,63 @@ class PostController extends Controller
 
     public function postSave(Request $request)
     {
-        $validator = Validator::make(
-            $request->all(),
-            [
-                'title' => 'required',
-                'content' => 'required',
-            ],
-            [
-                'title' => 'Vui lòng nhập thông tin !',
-                'content' => 'Vui lòng nhập thông tin !',
-            ]
-        );
+        // $response = Http::asForm()->post('https://topgiaiphap.com/wp-login.php', [
+        //     'log' => 'mentseotop@gmail.com',
+        //     'pwd' => 'Ment_pbn@2022',
+        //     'wp-submit' => 'Đăng nhập',
+        //     'redirect_to' => 'https://topgiaiphap.com/wp-admin/',
+        //     'testcookie' => '1',
+        // ]);
 
-        if ($validator->fails()) {
-            return redirect('/dashboard/post-create')
-                ->withErrors($validator)
-                ->withInput()->with('outline', $request['outline'])->with('content', $request['content']);
-        }
-        $postData = $validator->safe()->only(['title', 'content']);
+        // dd($response->headers()['Set-Cookie']);
 
-        $post = new Post();
-        $post->title = $postData['title'];
-        $post->content = $postData['content'];
-        $post->save();
 
-        return redirect('/dashboard/post-list');
+        $response = Http::withHeaders([
+            'Cookie' => 'wordpress_sec_7b9c83940f471d359f59872252f6a225=ment_vn%7C1679903482%7CCtqxFtklGOrQLOEVUEZKh9sAFbiEJAzYXS8FMzsNWkz%7Cef3cf9c2b87030b9f00fc47dd6695644a931cc312845f29738e0e71848167798',
+        ])->get('https://topgiaiphap.com/wp-admin/post-new.php');
+
+        $html = $response->body();
+        // echo $html;
+        $encoding = mb_detect_encoding($html);
+        //iso-8859-1
+        //UTF-8
+        $html = mb_convert_encoding($html, 'UTF-8', $encoding);
+        // echo $html;
+        $doc = new \DomDocument();
+        @$doc->loadHtml($html);
+        $xpdoc = new \DOMXpath($doc);
+
+        $_wpnonce = $xpdoc->query('//*[@id="post"]/input[@id="_wpnonce"]/@value')[0]->nodeValue;
+        $post_author = $xpdoc->query('//*[@id="post"]/input[@id="post_author"]/@value')[0]->nodeValue;
+        $post_ID = $xpdoc->query('//*[@id="post"]/input[@id="post_ID"]/@value')[0]->nodeValue;
+        echo $_wpnonce;
+        echo '<br>';
+        echo $post_author;
+        echo '<br>';
+        echo $post_ID;
+
+        // $res = Http::withHeaders([
+        //     'content-type: multipart/form-data; boundary=----WebKitFormBoundaryWlVEFesIpauNooAm',
+        //     'Cookie' => 'wordpress_sec_7b9c83940f471d359f59872252f6a225=ment_vn%7C1679903482%7CCtqxFtklGOrQLOEVUEZKh9sAFbiEJAzYXS8FMzsNWkz%7Cef3cf9c2b87030b9f00fc47dd6695644a931cc312845f29738e0e71848167798',
+        // ])->post('https://topgiaiphap.com/wp-admin/post.php', [
+        //     '_wpnonce' => $_wpnonce,
+        //     '_wp_http_referer' => '/wp-admin/post-new.php',
+        //     'user_ID' => $post_author,
+        //     'action' => 'editpost',
+        //     'originalaction' => 'editpost',
+        //     'post_author' => $post_author,
+        //     'post_type' => 'post',
+        //     'original_post_status' => 'auto-draft',
+        //     'referredby' => '',
+        //     'auto_draft' => '1',
+        //     'post_ID' => $post_ID,
+        //     'original_publish' => 'Đăng',
+        //     'publish' => 'Đăng',
+        //     'post_title' => 'test',
+        //     'content' => '111111111',
+        // ]);
+
+        // dd('OK');
     }
 
     /**
