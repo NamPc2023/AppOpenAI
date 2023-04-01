@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Http;
 
 
+
 class PostController extends Controller
 {
     public $content = '';
@@ -35,8 +36,8 @@ class PostController extends Controller
 
     public function Each($data)
     {
-        ProcessPost::dispatch($data);
-        echo "Tạo bài viết thàng công ";
+        ProcessPost::dispatch($this, $data);
+        echo '<h1 style="color: green;text-align: center">Tạo bài viết thành công </h1>';
     }
 
     public function getPostContent(Request $request)
@@ -83,30 +84,44 @@ class PostController extends Controller
      * @return \Illuminate\Http\Response
      */
 
-    public function postSave(Request $request)
+    public function postSave($title,$content)
     {
-        // $response = Http::asForm()->post('https://topgiaiphap.com/wp-login.php', [
-        //     'log' => 'mentseotop@gmail.com',
-        //     'pwd' => 'Ment_pbn@2022',
-        //     'wp-submit' => 'Đăng nhập',
-        //     'redirect_to' => 'https://topgiaiphap.com/wp-admin/',
-        //     'testcookie' => '1',
-        // ]);
+        //login form action url
+        $url = 'https://topgiaiphap.com/wp-login.php';
+        $postinfo = [
+            'log' => 'mentseotop@gmail.com',
+            'pwd' => 'Ment_pbn@2022',
+        ];
+        $cookie_file_path = public_path().'/tmp/cookie.txt';
 
-        // dd($response->headers()['Set-Cookie']);
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_HEADER, false);
+        curl_setopt($ch, CURLOPT_NOBODY, false);
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
 
+        curl_setopt($ch, CURLOPT_COOKIEJAR, $cookie_file_path);
+        //set the cookie the site has for certain features, this is optional
+        curl_setopt($ch, CURLOPT_COOKIE, "cookiename=0");
+        curl_setopt($ch,CURLOPT_USERAGENT,"user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36");
 
-        $response = Http::withHeaders([
-            'Cookie' => 'wordpress_sec_7b9c83940f471d359f59872252f6a225=ment_vn%7C1679903482%7CCtqxFtklGOrQLOEVUEZKh9sAFbiEJAzYXS8FMzsNWkz%7Cef3cf9c2b87030b9f00fc47dd6695644a931cc312845f29738e0e71848167798',
-        ])->get('https://topgiaiphap.com/wp-admin/post-new.php');
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_REFERER, 'https://topgiaiphap.com/wp-login.php');
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 0);
 
-        $html = $response->body();
-        // echo $html;
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $postinfo);
+        curl_exec($ch);
+
+        //page with the content I want to grab
+        curl_setopt($ch, CURLOPT_URL, "https://topgiaiphap.com/wp-admin/post-new.php");
+        $html = curl_exec($ch);
+
         $encoding = mb_detect_encoding($html);
-        //iso-8859-1
-        //UTF-8
         $html = mb_convert_encoding($html, 'UTF-8', $encoding);
-        // echo $html;
+
         $doc = new \DomDocument();
         @$doc->loadHtml($html);
         $xpdoc = new \DOMXpath($doc);
@@ -114,34 +129,31 @@ class PostController extends Controller
         $_wpnonce = $xpdoc->query('//*[@id="post"]/input[@id="_wpnonce"]/@value')[0]->nodeValue;
         $post_author = $xpdoc->query('//*[@id="post"]/input[@id="post_author"]/@value')[0]->nodeValue;
         $post_ID = $xpdoc->query('//*[@id="post"]/input[@id="post_ID"]/@value')[0]->nodeValue;
-        echo $_wpnonce;
-        echo '<br>';
-        echo $post_author;
-        echo '<br>';
-        echo $post_ID;
+      
+        $newPost = [
+            '_wpnonce' => $_wpnonce,
+            '_wp_http_referer' => '/wp-admin/post-new.php',
+            'user_ID' => $post_author,
+            'action' => 'editpost',
+            'originalaction' => 'editpost',
+            'post_author' => $post_author,
+            'post_type' => 'post',
+            'original_post_status' => 'auto-draft',
+            'referredby' => '',
+            'auto_draft' => '1',
+            'post_ID' => $post_ID,
+            'original_publish' => 'Đăng',
+            'publish' => 'Đăng',
+            'post_title' => $title,
+            'content' => $content,
+        ];
 
-        // $res = Http::withHeaders([
-        //     'content-type: multipart/form-data; boundary=----WebKitFormBoundaryWlVEFesIpauNooAm',
-        //     'Cookie' => 'wordpress_sec_7b9c83940f471d359f59872252f6a225=ment_vn%7C1679903482%7CCtqxFtklGOrQLOEVUEZKh9sAFbiEJAzYXS8FMzsNWkz%7Cef3cf9c2b87030b9f00fc47dd6695644a931cc312845f29738e0e71848167798',
-        // ])->post('https://topgiaiphap.com/wp-admin/post.php', [
-        //     '_wpnonce' => $_wpnonce,
-        //     '_wp_http_referer' => '/wp-admin/post-new.php',
-        //     'user_ID' => $post_author,
-        //     'action' => 'editpost',
-        //     'originalaction' => 'editpost',
-        //     'post_author' => $post_author,
-        //     'post_type' => 'post',
-        //     'original_post_status' => 'auto-draft',
-        //     'referredby' => '',
-        //     'auto_draft' => '1',
-        //     'post_ID' => $post_ID,
-        //     'original_publish' => 'Đăng',
-        //     'publish' => 'Đăng',
-        //     'post_title' => 'test',
-        //     'content' => '111111111',
-        // ]);
+        curl_setopt($ch, CURLOPT_URL, "https://topgiaiphap.com/wp-admin/post.php");
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $newPost);
+        curl_exec($ch);
 
-        // dd('OK');
+        curl_close($ch);
+
     }
 
     /**
