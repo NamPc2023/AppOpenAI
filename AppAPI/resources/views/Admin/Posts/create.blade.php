@@ -43,12 +43,15 @@
     <main id="main" class="main">
 
         <div class="pagetitle">
-            <h1>Tạo bài viết từ outline</h1>
+            <h1>Tạo bài viết theo từ khóa</h1>
 
         </div><!-- End Page Title -->
 
         <section class="section">
             <div class="row">
+                @if (session('msg'))
+                    <h3 style="color: green;text-align: center">{{ session('msg')}}</h3>
+                @endif
                 <div class="col-lg-12">
                     @if (session('content'))
                         <form action="/dashboard/post/save" method="POST">
@@ -65,7 +68,7 @@
                     <input type="hidden" name="_token" value="{{ csrf_token() }}" />
                     @if (session('outline'))
                         <div class="mb-3">
-                            <label for="" class="form-label">Outline</label>
+                            <label for="" class="form-label">Nhập từ khóa</label>
                             <textarea id="editor" class="form-control" name="outline" rows="10" cols="70">{{ session('outline') }}</textarea>
                             @error('outline')
                                 <div class="alert alert-danger">{{ $message }}</div>
@@ -73,7 +76,7 @@
                         </div>
                     @else
                         <div class="mb-3">
-                            <label for="" class="form-label">Outline</label>
+                            <label for="" class="form-label">Nhập từ khóa</label>
                             <textarea id="editor" class="form-control" name="outline" rows="10" cols="70"></textarea>
                             @error('outline')
                                 <div class="alert alert-danger">{{ $message }}</div>

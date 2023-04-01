@@ -43,7 +43,7 @@
     <main id="main" class="main">
 
         <div class="pagetitle">
-            <h1>Tạo bài từ outline</h1>
+            <h1>Tạo bài theo từ khóa</h1>
 
         </div><!-- End Page Title -->
 

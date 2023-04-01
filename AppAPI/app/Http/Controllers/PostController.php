@@ -37,7 +37,6 @@ class PostController extends Controller
     public function Each($data)
     {
         ProcessPost::dispatch($this, $data);
-        echo '<h1 style="color: green;text-align: center">Tạo bài viết thành công </h1>';
     }
 
     public function getPostContent(Request $request)
@@ -73,9 +72,9 @@ class PostController extends Controller
 
             if (is_array($results)) {
                 $this->Each($results);
-                // return redirect('/dashboard/post-create')->with('content', $this->content)->with('outline', $outline);
             }
         }
+        return redirect('/dashboard/post-create')->with('msg','Tạo bài thành công');
     }
 
     /**
@@ -153,6 +152,8 @@ class PostController extends Controller
         curl_exec($ch);
 
         curl_close($ch);
+
+        
 
     }
 
