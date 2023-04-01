@@ -9,20 +9,22 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Orhanerday\OpenAi\OpenAi;
-use App\Models\Post;
+use App\Http\Controllers\PostController;
 
 class ProcessPost implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public $data;
+    public $post;
 
     /**
      * Create a new job instance.
      */
-    public function __construct($data)
+    public function __construct(PostController $post,$data)
     {
         $this->data = $data;
+        $this->post = $post;
     }
 
     /**
@@ -30,6 +32,7 @@ class ProcessPost implements ShouldQueue
      */
     public function handle(): void
     {
+        $titles = [];
         $contents = [];
         foreach ($this->data as $k => $value) {
             // $value = substr($value,0,stripos($value,'</p>'));
@@ -53,12 +56,12 @@ class ProcessPost implements ShouldQueue
                     'presence_penalty' => 0,
                 ]);
                 $result = json_decode($response, TRUE);
+                $titles[] = $value;
                 $contents[] = trim(preg_replace('/\s+/', ' ', '<p>' . ucwords($value) . '</p><p>' . $result['choices'][0]['message']['content'])) . '</p>';
             }
         }
-        $post = new Post();
-        $post->title = 'demo';
-        $post->content = implode(' ',$contents);
-        $post->save();
+        $content = implode(' ',$contents);
+        $title = implode(', ',$titles);
+        $this->post->postSave($title,$content);
     }
 }
