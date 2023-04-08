@@ -44,13 +44,17 @@ class WebController extends Controller
             $request->all(),
             [
                 'name' => 'required',
-                'url' => 'required',
+                'loginUrl' => 'required',
+                'postNewUrl' => 'required',
+                'postSaveUrl' => 'required',
                 'admin' => 'required',
                 'password' => 'required',
             ],
             [
                 'name' => 'Vui lòng điền thông tin !',
-                'url' => 'Vui lòng điền thông tin !',
+                'loginUrl' => 'Vui lòng điền thông tin !',
+                'postNewUrl' => 'Vui lòng điền thông tin !',
+                'postSaveUrl' => 'Vui lòng điền thông tin !',
                 'admin' => 'Vui lòng điền thông tin !',
                 'password' => 'Vui lòng điền thông tin !',
             ]
@@ -61,11 +65,13 @@ class WebController extends Controller
                 ->withErrors($validator)
                 ->withInput();
         }
-        $data = $validator->safe()->only(['name','url','admin','password']);
+        $data = $validator->safe()->only(['name','loginUrl','postNewUrl','postSaveUrl','admin','password']);
         
         $web = new Web();
         $web->name = $data['name'];
-        $web->url = $data['url'];
+        $web->login_url = $data['loginUrl'];
+        $web->post_new_url = $data['postNewUrl'];
+        $web->post_save_url = $data['postSaveUrl'];
         $web->admin = $data['admin'];
         $web->password = $data['password'];
         $web->save();
@@ -112,13 +118,17 @@ class WebController extends Controller
             $request->all(),
             [
                 'name' => 'required',
-                'url' => 'required',
+                'loginUrl' => 'required',
+                'postNewUrl' => 'required',
+                'postSaveUrl' => 'required',
                 'admin' => 'required',
                 'password' => 'required',
             ],
             [
                 'name' => 'Vui lòng điền thông tin !',
-                'url' => 'Vui lòng điền thông tin !',
+                'loginUrl' => 'Vui lòng điền thông tin !',
+                'postNewUrl' => 'Vui lòng điền thông tin !',
+                'postSaveUrl' => 'Vui lòng điền thông tin !',
                 'admin' => 'Vui lòng điền thông tin !',
                 'password' => 'Vui lòng điền thông tin !',
             ]
@@ -129,11 +139,13 @@ class WebController extends Controller
                 ->withErrors($validator)
                 ->withInput();
         }
-        $data = $validator->safe()->only(['name','url','admin','password']);
+        $data = $validator->safe()->only(['name','loginUrl','postNewUrl','postSaveUrl','admin','password']);
 
         $web = Web::findOrFail($id);
         $web->name = $data['name'];
-        $web->url = $data['url'];
+        $web->login_url = $data['loginUrl'];
+        $web->post_new_url = $data['postNewUrl'];
+        $web->post_save_url = $data['postSaveUrl'];
         $web->admin = $data['admin'];
         $web->password = $data['password'];
         $web->save();

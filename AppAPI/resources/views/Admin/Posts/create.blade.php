@@ -50,31 +50,11 @@
         <section class="section">
             <div class="row">
                 @if (session('msg'))
-                    <h3 style="color: green;text-align: center">{{ session('msg')}}</h3>
+                    <h3 style="color: green;text-align: center">{{ session('msg') }}</h3>
                 @endif
                 <div class="col-lg-12">
-                    @if (session('content'))
-                        <form action="/dashboard/post/save" method="POST">
-                            <div class="mb-3">
-                                <label for="" class="form-label">Tiêu đề bài viết</label>
-                                <input class="form-control" name="title">
-                                @error('title')
-                                    <div class="alert alert-danger">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        @else
-                            <form action="/dashboard/post-get-content" method="POST">
-                    @endif
-                    <input type="hidden" name="_token" value="{{ csrf_token() }}" />
-                    @if (session('outline'))
-                        <div class="mb-3">
-                            <label for="" class="form-label">Nhập từ khóa</label>
-                            <textarea id="editor" class="form-control" name="outline" rows="10" cols="70">{{ session('outline') }}</textarea>
-                            @error('outline')
-                                <div class="alert alert-danger">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    @else
+                    <form action="/dashboard/post-get-content" method="POST">
+                        <input type="hidden" name="_token" value="{{ csrf_token() }}" />
                         <div class="mb-3">
                             <label for="" class="form-label">Nhập từ khóa</label>
                             <textarea id="editor" class="form-control" name="outline" rows="10" cols="70"></textarea>
@@ -82,21 +62,44 @@
                                 <div class="alert alert-danger">{{ $message }}</div>
                             @enderror
                         </div>
-                    @endif
-
-                    @if (session('content'))
                         <div class="mb-3">
-                            <label for="" class="form-label">Nội dung</label>
-                            <textarea id="editor1" class="form-control" name="content" rows="10" cols="70">{{ session('content') }}</textarea>
-                            @error('content')
+                            <label for="" class="form-label">Trang web cần đăng</label>
+                            <select class="form-control" name="web_id" id="">
+                                <option selected value="">Chọn web cần đăng ...</option>
+                                @if (count($webs) > 0)
+                                    @foreach ($webs as $k => $web)
+                                        <option value="{{ $web->id }}"> {{ $web->name }}</option>
+                                    @endforeach
+                                @endif
+                            </select>
+                            @error('web_id')
                                 <div class="alert alert-danger">{{ $message }}</div>
                             @enderror
                         </div>
-                        <button type="submit" class="btn btn-primary">Lưu bài viết</button>
-                    @else
-                        <input type="text" name="content" hidden value="0">
+
+                        <div class="mb-3">
+                            <label for="" class="form-label">Trạng thái bài đăng</label>
+                            <select class="form-control" name="postStatus" id="">
+                                <option selected value="1">Bản nháp</option>
+                                <option value="2">Xuất bản</option>
+                                <option value="3">Lên lịch</option>
+                            </select>
+                            @error('postStatus')
+                                <div class="alert alert-danger">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="mb-3 col-4">
+                            <label for="" class="form-label">Lên lịch</label>
+                            <input type="date" class="form-control" value="{{ $date }}" />
+                        </div>
+
+                        <div class="mb-3 col-2">
+                            <input type="text" class="form-control" value="{{ $hour }}" />
+                            <input type="text" class="form-control" value="{{ $minute }}" />
+                        </div>
+
                         <button type="submit" class="btn btn-primary">Tạo bài viết</button>
-                    @endif
                     </form>
                 </div>
             </div>
@@ -109,12 +112,6 @@
         <script>
             ClassicEditor
                 .create(document.querySelector('#editor'))
-                .catch(error => {
-                    console.error(error);
-                });
-
-            ClassicEditor
-                .create(document.querySelector('#editor1'))
                 .catch(error => {
                     console.error(error);
                 });

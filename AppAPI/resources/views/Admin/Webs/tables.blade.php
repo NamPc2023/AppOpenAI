@@ -63,7 +63,9 @@
                     <tr>
                       <th scope="col">STT</th>
                       <th scope="col">Tên</th>
-                      <th scope="col">Link</th>
+                      <th scope="col">Link đăng nhập</th>
+                      <th scope="col">Link tạo bài viết</th>
+                      <th scope="col">Link lưu bài viết</th>
                       <th scope="col">Admin</th>
                       <th scope="col">Password</th>
                       <th scope="col">Action</th>
@@ -75,7 +77,9 @@
                             <tr>
                                 <th scope="row">{{++$k}}</th>
                                 <td>{{$value->name}}</td>
-                                <td>{{$value->url}}</td>
+                                <td>{{$value->login_url}}</td>
+                                <td>{{$value->post_new_url}}</td>
+                                <td>{{$value->post_save_url}}</td>
                                 <td>{{$value->admin}}</td>
                                 <td>{{$value->password}}</td>
                                 <td>

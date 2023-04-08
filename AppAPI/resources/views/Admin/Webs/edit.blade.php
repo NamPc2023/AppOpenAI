@@ -63,9 +63,23 @@
                                 @enderror
                             </div>
                             <div class="mb-3">
-                                <label for="" class="form-label">Link</label>
-                                <input type="text" name="url" value="{{ $data->url }}" class="form-control">
-                                @error('url')
+                                <label for="" class="form-label">Link đăng nhập</label>
+                                <input type="text" name="loginUrl" class="form-control" value="{{ $data->login_url }}">
+                                @error('loginUrl')
+                                    <div class="alert alert-danger">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <div class="mb-3">
+                                <label for="" class="form-label">Link tạo bài viết</label>
+                                <input type="text" name="postNewUrl" class="form-control" value="{{ $data->post_new_url }}">
+                                @error('postNewUrl')
+                                    <div class="alert alert-danger">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <div class="mb-3">
+                                <label for="" class="form-label">Link lưu bài viết</label>
+                                <input type="text" name="postSaveUrl" class="form-control" value="{{ $data->post_save_url }}">
+                                @error('postSaveUrl')
                                     <div class="alert alert-danger">{{ $message }}</div>
                                 @enderror
                             </div>

@@ -17,14 +17,26 @@ class ProcessPost implements ShouldQueue
 
     public $data;
     public $post;
+    public $admin;
+    public $password;
+    public $loginUrl;
+    public $postNewUrl;
+    public $postSaveUrl;
+    public $postStatus;
 
     /**
      * Create a new job instance.
      */
-    public function __construct(PostController $post,$data)
+    public function __construct(PostController $post,$data,$admin,$password,$loginUrl,$postNewUrl,$postSaveUrl,$postStatus)
     {
         $this->data = $data;
         $this->post = $post;
+        $this->admin = $admin;
+        $this->password = $password;
+        $this->loginUrl = $loginUrl;
+        $this->postNewUrl = $postNewUrl;
+        $this->postSaveUrl = $postSaveUrl;
+        $this->postStatus = $postStatus;
     }
 
     /**
@@ -62,6 +74,6 @@ class ProcessPost implements ShouldQueue
         }
         $content = implode(' ',$contents);
         $title = implode(', ',$titles);
-        $this->post->postSave($title,$content);
+        $this->post->postSave($title,$content,$this->admin,$this->password,$this->loginUrl,$this->postNewUrl,$this->postSaveUrl,$this->postStatus);
     }
 }

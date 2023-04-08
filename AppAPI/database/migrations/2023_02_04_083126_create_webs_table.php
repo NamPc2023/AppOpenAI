@@ -16,7 +16,9 @@ return new class extends Migration
         Schema::create('webs', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('url');
+            $table->string('login_url');
+            $table->string('post_new_url');
+            $table->string('post_save_url');
             $table->string('admin');
             $table->string('password');
             $table->timestamps();

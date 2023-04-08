@@ -5,11 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\Post;
 use Spatie\Async\Pool;
 use Illuminate\Http\Request;
-use App\Exceptions\InvalidOrderException;
+
 use App\Jobs\ProcessPost;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Http;
-
+use Carbon\Carbon;
+use App\Models\Web;
 
 
 class PostController extends Controller
@@ -25,30 +25,52 @@ class PostController extends Controller
     {
         $pots  = Post::all();
         return view('Admin.Posts.tables')->with('data', $pots);
+        
     }
 
 
     public function create(Request $request)
     {
-        return view('Admin.Posts.create');
+
+        $timezone = Carbon::now('Asia/Ho_Chi_Minh');
+
+        $day = $timezone->day;
+        if(strlen($day) == 1){
+            $day ='0'.$day;
+        }
+        $month = $timezone->month;
+        if(strlen($month) == 1){
+            $month = '0'.$month;
+        }
+        $year = $timezone->year;
+        $date = $year.'-'.$month.'-'.$day;
+
+        $hour = $timezone->hour;
+        $minute = $timezone->minute;
+
+        $webs = Web::all();
+        return view('Admin.Posts.create')->with('webs',$webs)->with('date',$date)->with('hour',$hour)->with('minute',$minute);
     }
 
 
-    public function Each($data)
+    public function InProgress($data,$admin,$password,$loginUrl,$postNewUrl,$postSaveUrl,$postStatus)
     {
-        ProcessPost::dispatch($this, $data);
+        ProcessPost::dispatch($this, $data,$admin,$password,$loginUrl,$postNewUrl,$postSaveUrl,$postStatus);
     }
 
     public function getPostContent(Request $request)
     {
-
         $validator = Validator::make(
             $request->all(),
             [
                 'outline' => 'required',
+                'web_id' => 'required',
+                'postStatus' => 'required',
             ],
             [
                 'outline' => 'Vui lòng nhập thông tin !',
+                'web_id' => 'Vui lòng chọn trang web cần đăng !',
+                'postStatus' => 'Vui lòng chọn trang thái cần đăng !',
             ]
         );
 
@@ -58,22 +80,26 @@ class PostController extends Controller
                 ->withInput();
         }
 
-        $outline = $validator->safe()->only(['outline'])['outline'];
-        if (!empty($outline)) {
-            // $data = array_filter(preg_split("/(\r\n|\n|\r)/", $outline));
-            $data = array_filter(explode('<p>', $outline));
-            $results = array();
-            foreach ($data as $val) {
-                $scripts = explode('<br>', $val);
-                foreach ($scripts as $script) {
-                    $results[] = $script;
-                }
-            }
+        $result = $validator->safe()->only(['outline','web_id','postStatus']);
 
-            if (is_array($results)) {
-                $this->Each($results);
+        $outline = $result['outline'];
+        $web = Web::findOrFail($result['web_id']);
+        $postStatus = $result['postStatus'];
+
+        // $data = array_filter(preg_split("/(\r\n|\n|\r)/", $outline));
+        $data = array_filter(explode('<p>', $outline));
+        $results = array();
+        foreach ($data as $val) {
+            $scripts = explode('<br>', $val);
+            foreach ($scripts as $script) {
+                $results[] = $script;
             }
         }
+
+        if (is_array($results)) {
+            $this->InProgress($results,$web->admin,$web->password,$web->login_url,$web->post_new_url,$web->post_save_url,$postStatus);
+        }
+    
         return redirect('/dashboard/post-create')->with('msg','Tạo bài thành công');
     }
 
@@ -83,13 +109,13 @@ class PostController extends Controller
      * @return \Illuminate\Http\Response
      */
 
-    public function postSave($title,$content)
+    public function postSave($title,$content,$admin,$password,$loginUrl,$postNewUrl,$postSaveUrl,$postStatus = 1)
     {
         //login form action url
-        $url = 'https://topgiaiphap.com/wp-login.php';
+        $url = trim($loginUrl);
         $postinfo = [
-            'log' => 'mentseotop@gmail.com',
-            'pwd' => 'Ment_pbn@2022',
+            'log' => $admin,
+            'pwd' => $password,
         ];
         $cookie_file_path = public_path().'/tmp/cookie.txt';
 
@@ -105,7 +131,7 @@ class PostController extends Controller
         curl_setopt($ch,CURLOPT_USERAGENT,"user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36");
 
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_REFERER, 'https://topgiaiphap.com/wp-login.php');
+        curl_setopt($ch, CURLOPT_REFERER, $url);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 0);
 
@@ -115,7 +141,7 @@ class PostController extends Controller
         curl_exec($ch);
 
         //page with the content I want to grab
-        curl_setopt($ch, CURLOPT_URL, "https://topgiaiphap.com/wp-admin/post-new.php");
+        curl_setopt($ch, CURLOPT_URL, trim($postNewUrl));
         $html = curl_exec($ch);
 
         $encoding = mb_detect_encoding($html);
@@ -128,7 +154,14 @@ class PostController extends Controller
         $_wpnonce = $xpdoc->query('//*[@id="post"]/input[@id="_wpnonce"]/@value')[0]->nodeValue;
         $post_author = $xpdoc->query('//*[@id="post"]/input[@id="post_author"]/@value')[0]->nodeValue;
         $post_ID = $xpdoc->query('//*[@id="post"]/input[@id="post_ID"]/@value')[0]->nodeValue;
+
+        $hidden_mm = $xpdoc->query('//*[@id="timestampdiv"]//*[@id="hidden_mm"]/@value')[0]->nodeValue;
+        $hidden_jj = $xpdoc->query('//*[@id="timestampdiv"]//*[@id="hidden_jj"]/@value')[0]->nodeValue;
+        $hidden_aa = $xpdoc->query('//*[@id="timestampdiv"]//*[@id="hidden_aa"]/@value')[0]->nodeValue;
+        $hidden_hh = $xpdoc->query('//*[@id="timestampdiv"]//*[@id="hidden_hh"]/@value')[0]->nodeValue;
+        $hidden_mn = $xpdoc->query('//*[@id="timestampdiv"]//*[@id="hidden_mn"]/@value')[0]->nodeValue;
       
+        $newPost = Array();
         $newPost = [
             '_wpnonce' => $_wpnonce,
             '_wp_http_referer' => '/wp-admin/post-new.php',
@@ -142,19 +175,34 @@ class PostController extends Controller
             'auto_draft' => '1',
             'post_ID' => $post_ID,
             'original_publish' => 'Đăng',
-            'publish' => 'Đăng',
             'post_title' => $title,
             'content' => $content,
         ];
 
-        curl_setopt($ch, CURLOPT_URL, "https://topgiaiphap.com/wp-admin/post.php");
+        if($postStatus == 2){
+            $newPost['publish'] = 'Đăng';
+        }elseif($postStatus == 3){
+            $newPost['publish'] = 'Dự kiến';
+
+            $newPost['mm'] = '04';
+            $newPost['jj'] = '20';
+            $newPost['aa'] = '2023';
+            $newPost['hh'] = '16';
+            $newPost['mn'] = '00';
+
+            $newPost['hidden_mm'] = $hidden_mm;
+            $newPost['hidden_jj'] = $hidden_jj;
+            $newPost['hidden_aa'] = $hidden_aa;
+            $newPost['hidden_hh'] = $hidden_hh;
+            $newPost['hidden_mn'] = $hidden_mn;
+
+        }
+
+        curl_setopt($ch, CURLOPT_URL, trim($postSaveUrl));
         curl_setopt($ch, CURLOPT_POSTFIELDS, $newPost);
         curl_exec($ch);
 
         curl_close($ch);
-
-        
-
     }
 
     /**
