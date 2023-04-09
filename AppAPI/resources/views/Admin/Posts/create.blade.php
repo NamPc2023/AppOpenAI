@@ -79,7 +79,7 @@
 
                         <div class="mb-3">
                             <label for="" class="form-label">Trạng thái bài đăng</label>
-                            <select class="form-control" name="postStatus" id="">
+                            <select class="form-control" onchange="Handle()" name="postStatus" id="postStatus">
                                 <option selected value="1">Bản nháp</option>
                                 <option value="2">Xuất bản</option>
                                 <option value="3">Lên lịch</option>
@@ -89,14 +89,16 @@
                             @enderror
                         </div>
 
-                        <div class="mb-3 col-4">
-                            <label for="" class="form-label">Lên lịch</label>
-                            <input type="date" class="form-control" value="{{ $date }}" />
-                        </div>
-
-                        <div class="mb-3 col-2">
-                            <input type="text" class="form-control" value="{{ $hour }}" />
-                            <input type="text" class="form-control" value="{{ $minute }}" />
+                        <div id="calendar" hidden class="mb-3">
+                            <div class="form-group row">
+                                <label for="" class="form-label">Lên lịch</label>
+                                <div class="col-md-3">
+                                    <input type="date" name="date" class="form-control" value="{{ $date }}" />
+                                </div>
+                                <div class="col-md-3">
+                                    <input type="time" name="time" class="form-control" value="{{ $time }}" />
+                                </div>
+                            </div>
                         </div>
 
                         <button type="submit" class="btn btn-primary">Tạo bài viết</button>
@@ -110,6 +112,19 @@
     <!-- ======= Footer ======= -->
     <footer id="footer" class="footer">
         <script>
+
+            
+            function Handle(){
+                let postStatus = document.getElementById('postStatus').value;
+                let calendar = document.getElementById('calendar');
+                if(postStatus == 3){
+                    calendar.hidden = false;
+                    console.log(calendar);
+                }else{
+                    calendar.hidden = true;
+                }
+            }
+
             ClassicEditor
                 .create(document.querySelector('#editor'))
                 .catch(error => {

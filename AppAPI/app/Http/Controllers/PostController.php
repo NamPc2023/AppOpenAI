@@ -46,10 +46,17 @@ class PostController extends Controller
         $date = $year.'-'.$month.'-'.$day;
 
         $hour = $timezone->hour;
+        if(strlen($hour) == 1){
+            $hour = '0'.$hour;
+        }
         $minute = $timezone->minute;
+        if(strlen($minute) == 1){
+            $minute = '0'.$minute;
+        }
+        $time = $hour.':'.$minute;
 
         $webs = Web::all();
-        return view('Admin.Posts.create')->with('webs',$webs)->with('date',$date)->with('hour',$hour)->with('minute',$minute);
+        return view('Admin.Posts.create')->with('webs',$webs)->with('date',$date)->with('time',$time);
     }
 
 
@@ -84,7 +91,12 @@ class PostController extends Controller
 
         $outline = $result['outline'];
         $web = Web::findOrFail($result['web_id']);
-        $postStatus = $result['postStatus'];
+
+        $postStatus = Array();
+        $postStatus['postStatus'] = $request['postStatus'];
+        $postStatus['date'] = $request['date'];
+        $postStatus['time'] = $request['time'];
+
 
         // $data = array_filter(preg_split("/(\r\n|\n|\r)/", $outline));
         $data = array_filter(explode('<p>', $outline));
@@ -179,16 +191,20 @@ class PostController extends Controller
             'content' => $content,
         ];
 
-        if($postStatus == 2){
+
+        if($postStatus['postStatus'] == 2){
             $newPost['publish'] = 'Đăng';
-        }elseif($postStatus == 3){
+        }elseif($postStatus['postStatus'] == 3){
             $newPost['publish'] = 'Dự kiến';
 
-            $newPost['mm'] = '04';
-            $newPost['jj'] = '20';
-            $newPost['aa'] = '2023';
-            $newPost['hh'] = '16';
-            $newPost['mn'] = '00';
+            $date = explode('-',$postStatus['date']);
+            $time = explode(':',$postStatus['time']);
+
+            $newPost['mm'] = $date[1];
+            $newPost['jj'] = $date[2];
+            $newPost['aa'] = $date[0];
+            $newPost['hh'] = $time[0];
+            $newPost['mn'] = $time[1];
 
             $newPost['hidden_mm'] = $hidden_mm;
             $newPost['hidden_jj'] = $hidden_jj;
